@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Data types for mechanisms
 
+pub mod aead;
 pub mod elliptic_curve;
 mod mechanism_info;
 pub mod rsa;
@@ -60,6 +61,10 @@ impl MechanismType {
     pub const AES_KEY_WRAP_PAD: MechanismType = MechanismType {
         val: CKM_AES_KEY_WRAP_PAD,
     };
+    /// AES-GCM mechanism
+    pub const AES_GCM: MechanismType = MechanismType { val: CKM_AES_GCM };
+    /// AES-CCM mechanism
+    pub const AES_CCM: MechanismType = MechanismType { val: CKM_AES_CCM };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -675,6 +680,10 @@ pub enum Mechanism<'a> {
     AesKeyWrap,
     /// AES key wrap with padding block
     AesKeyWrapPad,
+    /// AES-GCM mechanism
+    AesGcm(aead::GcmParams<'a>),
+    /// AES-CCM mechanism
+    AesCcm(aead::CcmParams<'a>),
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -807,6 +816,8 @@ impl Mechanism<'_> {
             Mechanism::AesCbcPad(_) => MechanismType::AES_CBC_PAD,
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
+            Mechanism::AesGcm(_) => MechanismType::AES_GCM,
+            Mechanism::AesCcm(_) => MechanismType::AES_CCM,
 
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
@@ -863,6 +874,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
                 make_mechanism(mechanism, params)
             }
+            Mechanism::AesGcm(params) => make_mechanism(mechanism, params),
+            Mechanism::AesCcm(params) => make_mechanism(mechanism, params),
             Mechanism::DesCbc(params)
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
